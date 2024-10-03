@@ -1,17 +1,13 @@
-// zinx/znet/server_test.go
-package znet
+// zinx/UnitTest/Client.go
+package main
 
 import (
 	"fmt"
 	"net"
-	"testing"
 	"time"
 )
 
-/*
-模拟客户端
-*/
-func ClientTest() {
+func main() {
 
 	fmt.Println("Client Test ... start")
 	// 3s之后发起测试请求，给服务器端开启服务的机会
@@ -41,23 +37,4 @@ func ClientTest() {
 
 		time.Sleep(1 * time.Second)
 	}
-}
-
-// Server 模块的测试函数
-func TestServer(t *testing.T) {
-
-	/*
-		服务器端测试
-	*/
-
-	// 1.创建一个Server句柄s
-	s := NewServer("[zinx v0.1]")
-
-	/*
-		客户端测试
-	*/
-	go ClientTest()
-
-	// 2.开启服务
-	s.Serve()
 }
