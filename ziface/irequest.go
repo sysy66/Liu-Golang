@@ -1,4 +1,4 @@
-// Package ziface zinx/znet/irequest.go
+// Package ziface zinx/ziface/irequest.go
 package ziface
 
 /*
