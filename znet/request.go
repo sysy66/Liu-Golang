@@ -1,4 +1,4 @@
-// zinx/znet/irequest.go
+// zinx/znet/request.go
 package znet
 
 import "zinx/ziface"
