@@ -4,6 +4,7 @@ package znet
 import (
 	"fmt"
 	"net"
+	"zinx/utils"
 	"zinx/ziface"
 )
 
@@ -25,7 +26,11 @@ type Server struct {
 
 // Start 开启网络服务
 func (s *Server) Start() {
-	fmt.Printf("[START] Server Listener at IP: %s, Port %d, is starting\n", s.IP, s.Port)
+	fmt.Printf("[START] Server name: %s, listener at IP: %s, Port %d, is starting\n", s.Name, s.IP, s.Port)
+	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
+		utils.GlobalObject.Version,
+		utils.GlobalObject.MaxConn,
+		utils.GlobalObject.MaxPacketSize)
 
 	// 开启一个go去做服务器端Listener业务
 	go func() {
@@ -94,14 +99,15 @@ func (s *Server) AddRouter(router ziface.IRouter) {
 }
 
 // NewServer 创建一个服务器句柄
-func NewServer(name string) ziface.IServer {
+func NewServer() ziface.IServer {
+	// 先初始化全局配置文件
+	utils.GlobalObject.Reload()
 	s := &Server{
-		Name:      name,
+		Name:      utils.GlobalObject.Name, // 从全局参数获取
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      7777,
-		Router:    nil, // 默认不制指定
+		IP:        utils.GlobalObject.Host,    // 从全局参数获取
+		Port:      utils.GlobalObject.TcpPort, // 从全局参数获取
+		Router:    nil,                        // 默认不制指定
 	}
-
 	return s
 }
