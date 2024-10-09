@@ -19,6 +19,8 @@ type Server struct {
 	IP string
 	// 服务绑定的端口
 	Port int
+	// 当前 Server 由用户绑定回调 router，也就是 Server 注册的连接对应的处理业务
+	Router ziface.IRouter
 }
 
 // ====================== 定义当前客户端连接的 handle API ======================
@@ -97,6 +99,13 @@ func (s *Server) Serve() {
 	select {}
 }
 
+// AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端连接处理使用
+func (s *Server) AddRouter(router ziface.IRouter) {
+	s.Router = router
+
+	fmt.Println("Add Router succ!")
+}
+
 // NewServer 创建一个服务器句柄
 func NewServer(name string) ziface.IServer {
 	s := &Server{
@@ -104,6 +113,7 @@ func NewServer(name string) ziface.IServer {
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      7777,
+		Router:    nil, // 默认不制指定
 	}
 
 	return s
