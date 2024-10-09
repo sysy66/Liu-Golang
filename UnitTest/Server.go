@@ -12,16 +12,6 @@ type PingRouter struct {
 	znet.BaseRouter // 一定要先定义基础路由 BaseRouter
 }
 
-// PreHandle Test
-func (this *PingRouter) PreHandle(request ziface.IRequest) {
-	fmt.Println("Call Router PreHandle")
-
-	_, err := request.GetConnection().GetTCPConnection().Write([]byte("before ping...\n"))
-	if err != nil {
-		fmt.Println("call back ping ping ping error")
-	}
-}
-
 // Handle Test
 func (this *PingRouter) Handle(request ziface.IRequest) {
 	fmt.Println("Call Router Handle")
@@ -32,23 +22,13 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 	}
 }
 
-// PostHandle Test
-func (this *PingRouter) PostHandle(request ziface.IRequest) {
-	fmt.Println("Call Router PostHandle")
-
-	_, err := request.GetConnection().GetTCPConnection().Write([]byte("after ping...\n"))
-	if err != nil {
-		fmt.Println("call back ping ping ping error")
-	}
-}
-
 // Server模块的测试函数
 func main() {
 
 	// 1.创建一个Server句柄s
-	s := znet.NewServer("[zinx v0.3]")
+	s := znet.NewServer()
 
-	// 2.开启服务
+	// 2.配置路由
 	s.AddRouter(&PingRouter{})
 
 	// 3.开启服务

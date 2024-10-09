@@ -1,5 +1,4 @@
-// zinx/znet/server_test.go
-package znet
+package main
 
 import (
 	"fmt"
