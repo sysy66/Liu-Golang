@@ -2,6 +2,7 @@
 package znet
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -135,4 +136,28 @@ func (c *Connection) GetConnID() uint32 {
 // RemoteAddr 获取远程客户端地址信息
 func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
+}
+
+// SendMsg  直接将 Message 数据发送给远程的 TCP 客户端
+func (c *Connection) SendMsg(msgId uint32, data []byte) error {
+	if c.isClosed == true {
+		return errors.New("connection is closed when send msg")
+	}
+
+	// 将 data 封包，并且发送
+	dp := NewDataPack()
+	msg, err := dp.Pack(NewMessage(msgId, data))
+	if err != nil {
+		fmt.Println("pack error msg id:", msgId)
+		return errors.New("pack error msg")
+	}
+
+	// 写回客户端
+	if _, err := c.Conn.Write(msg); err != nil {
+		fmt.Println("write error msg id:", msgId)
+		c.ExitBuffChan <- true
+		return errors.New("conn Write error")
+	}
+
+	return nil
 }
