@@ -14,11 +14,14 @@ type PingRouter struct {
 
 // Handle Test
 func (this *PingRouter) Handle(request ziface.IRequest) {
-	fmt.Println("Call Router Handle")
+	fmt.Println("Call PingRouter Handle")
+	// 先读取客户端的数据，再回写ping...ping...ping
+	fmt.Println("recv from client: msgId = ", request.GetMsgId(), ", data = ", string(request.GetData()))
 
-	_, err := request.GetConnection().GetTCPConnection().Write([]byte("ping...ping...ping\n"))
+	// 回写数据
+	err := request.GetConnection().SendMsg(1, []byte("ping...ping...ping\n"))
 	if err != nil {
-		fmt.Println("call back ping ping ping error")
+		fmt.Println(err)
 	}
 }
 

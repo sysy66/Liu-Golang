@@ -4,5 +4,5 @@
   "MaxPacketSize": 4096,
   "Name": "demo",
   "TcpPort": 7777,
-  "Version": "V0.4"
+  "Version": "V0.5"
 }

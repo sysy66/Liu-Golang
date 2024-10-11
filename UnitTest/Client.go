@@ -3,8 +3,10 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"time"
+	"zinx/znet"
 )
 
 func main() {
@@ -20,20 +22,44 @@ func main() {
 	}
 
 	for {
-		_, err := conn.Write([]byte("hello ZINX"))
+		// 发送封包 message 消息
+		dp := znet.NewDataPack()
+		msg, _ := dp.Pack(znet.NewMessage(0, []byte("Zinx V0.5 Client Test Message")))
+		_, err := conn.Write(msg)
 		if err != nil {
-			fmt.Println("write error err", err)
+			fmt.Println("client Write err, exit!", err)
 			return
 		}
 
-		buf := make([]byte, 512)
-		cnt, err := conn.Read(buf)
+		// 先读出流中的 head 部分
+		headData := make([]byte, dp.GetHeadLen())
+		_, err = io.ReadFull(conn, headData) // ReadFull 会把 msg填充满
 		if err != nil {
-			fmt.Println("read buf error", err)
+			fmt.Println("client Read err: ", err)
+			break
+		}
+
+		//  将 headData 字节流拆包到 msg 中
+		msgHead, err := dp.Unpack(headData)
+		if err != nil {
+			fmt.Println("client Unpack err: ", err)
 			return
 		}
 
-		fmt.Printf("server call back: %s, cnt = %d\n", buf[:cnt], cnt)
+		if msgHead.GetDataLen() > 0 {
+			// msg 有 data 数据，需要再次读取 data 数据
+			msg := msgHead.(*znet.Message)
+			msg.Data = make([]byte, msg.GetDataLen())
+
+			// 根据 dataLen 从 io 中读取字节流
+			_, err := io.ReadFull(conn, msg.Data)
+			if err != nil {
+				fmt.Println("client Read err: ", err)
+				return
+			}
+
+			fmt.Println("==> Recv Msg: ID = ", msg.GetMsgId(), ", len = ", msg.GetDataLen(), ", data = ", string(msg.GetData()))
+		}
 
 		time.Sleep(1 * time.Second)
 	}
