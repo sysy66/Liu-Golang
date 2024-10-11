@@ -3,6 +3,7 @@ package znet
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"zinx/ziface"
 )
@@ -40,18 +41,41 @@ func (c *Connection) StartReader() {
 	defer c.Stop()
 
 	for {
-		// 将最大的数据读到buf中
-		buf := make([]byte, 512)
-		_, err := c.Conn.Read(buf)
-		if err != nil {
-			fmt.Println("recv buff err", err)
+		// 创建封包拆包对象 dp
+		dp := NewDataPack()
+
+		// 读取客户端的 Msg head
+		headData := make([]byte, dp.GetHeadLen())
+		if _, err := io.ReadFull(c.GetTCPConnection(), headData); err != nil {
+			fmt.Println("read msg head data error:", err)
 			c.ExitBuffChan <- true
 			continue
 		}
+
+		// 拆包，得到 msgId 和 dataLen 后放到 msg 中
+		msg, err := dp.Unpack(headData)
+		if err != nil {
+			fmt.Println("unpack msg error:", err)
+			c.ExitBuffChan <- true
+			continue
+		}
+
+		// 根据 dataLen 读取 data，放到 msg.Data 中
+		var data []byte
+		if msg.GetDataLen() > 0 {
+			data = make([]byte, msg.GetDataLen())
+			if _, err := io.ReadFull(c.GetTCPConnection(), data); err != nil {
+				fmt.Println("read msg data error:", err)
+				c.ExitBuffChan <- true
+				continue
+			}
+			msg.SetData(data)
+		}
+
 		// 得到当前客户端请求的 Request 数据
 		req := Request{
 			conn: c,
-			data: buf,
+			msg:  msg, // 将之前的 buf 改成 msg
 		}
 		// 从路由 Routers中找到注册绑定 Conn 的对应 Handle
 		go func(request ziface.IRequest) {
